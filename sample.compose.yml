@@ -13,7 +13,9 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - dokploy-network
+      dokploy-network:
+        aliases:
+          - swiyu-issuer-internal
     volumes:
       - db_data:/var/lib/postgresql/data
 
