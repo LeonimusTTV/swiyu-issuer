@@ -1,5 +1,5 @@
 services:
-  postgres:
+  issuer-postgres:
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: "issuer_mgmt_user"
@@ -12,11 +12,13 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - dokploy-network
     volumes:
       - db_data:/var/lib/postgresql/data
 
   swiyu-issuer-service:
-    image: ghcr.io/swiyu-admin-ch/swiyu-issuer:latest
+    image: ghcr.io/swiyu-admin-ch/swiyu-issuer:4.2.0
     environment:
       EXTERNAL_URL: ${EXTERNAL_URL}
       SPRING_APPLICATION_NAME: ${SPRING_APPLICATION_NAME}
@@ -48,7 +50,7 @@ services:
       POSTGRES_USER: "issuer_mgmt_user"
       POSTGRES_PASSWORD: "secret"
       POSTGRES_DB: "issuer_db"
-      POSTGRES_JDBC: "jdbc:postgresql://postgres:5432/issuer_db"
+      POSTGRES_JDBC: "jdbc:postgresql://issuer-postgres:5432/issuer_db"
     configs:
       - source: issuer_metadata
         target: /cfg-files/issuer_metadata.json
@@ -58,9 +60,17 @@ services:
       - "8080:8080"
     depends_on:
       - postgres
+    networks:
+      dokploy-network:
+        aliases:
+          - swiyu-issuer-internal
 
 volumes:
   db_data:
+
+networks:
+  dokploy-network:
+    external: true
 
 configs:
   openid_metadata:
